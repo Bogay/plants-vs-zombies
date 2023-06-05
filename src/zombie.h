@@ -15,6 +15,7 @@ public:
 
     int hp() const;
     void hurt(int);
+    int attack() const;
 };
 
 #endif
