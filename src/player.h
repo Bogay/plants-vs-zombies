@@ -15,6 +15,7 @@ public:
 
     int money() const;
     bool spend(int);
+    bool earn(int);
 };
 
 #endif
