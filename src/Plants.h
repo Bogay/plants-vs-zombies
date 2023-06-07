@@ -5,28 +5,41 @@
 #include <string>
 #include <iostream>
 class Game;
+class Player;
+class Zombie;
 
-class Plants{
+class Info{
 
     public:
+        void set_info(std::string n,int m_hp,int p);
 
-        static void set_gameref(Game &g);
+        std::string get_name()const{return name;}
+        int get_max_hp()const{return max_hp;}
+        int get_price()const{return price;}
 
-    	virtual void set_name(string s){};
-    	virtual void set_max_hp(int i){};
-        virtual void set_price(int i){};
+    private:
+        std::string name="plant";
+        int max_hp=0;
+        int price=0;
+};
 
-    	virtual string get_name()const{};
-    	virtual int get_max_hp()const{};
-        virtual int get_price()const{};
 
+
+
+class Plants{
+    friend std::ostream &operator<<(std::ostream os,const Plants &p);
+    public:
+
+        static void set_game_ref(Game &game);
+
+        virtual std::string get_name() const {};
         virtual void player_visit(Player &p){};
         virtual bool zombie_visit(Zombie &z){};// return true represent this plant dead
-        virtual void healed(){};
+        virtual void healed(int i){};
 
         int get_cur_hp()const{return cur_hp;}
-		
-		
+
+
     protected:
         int cur_hp=0;
         static Game *g;
@@ -35,111 +48,96 @@ class Plants{
 
 
 class CoinPlant: public Plants{
-    CoinPlant():cur_hp(max_hp){};
+    friend std::ostream &operator<<(std::ostream os,const CoinPlant &c);
+    CoinPlant();
     public:
-        virtual void set_name(string s) override;
-    	virtual void set_max_hp(int i) override;
-        virtual void set_price(int i) override;
+        static void set_info(std::string name,int max_hp,int price);
 
-    	virtual string get_name()const override;
-    	virtual int get_max_hp()const override;
-        virtual int get_price()const override;
+        static Info get_info() ;
 
+        virtual std::string get_name() const override;
         virtual void player_visit(Player &p) override;
         virtual bool zombie_visit(Zombie &z) override;
-        virtual void healed() override;
+        virtual void healed(int i) override;
 
-        void set_each_round(int i);
-        void set_earn_money(int i);
+        static void set_each_round(int i);
+        static void set_earn_money(int i);
+        static void print_intro();
 
 
     private:
         static int each_round_visit;
         static int earn_money;
-    	static string name;
-    	static int max_hp;
-    	static int price;
+        static Info info;
 
-    	int cur_visit=0;
+        int cur_visit=0;
 };
 
 
 class HornPlant: public Plants{
 
-    HornPlant():cur_hp(max_hp){};
+    HornPlant();
     public:
-        virtual void set_name(string s) override;
-    	virtual void set_max_hp(int i) override;
-        virtual void set_price(int i) override;
+        static void set_info(std::string name,int max_hp,int price);
 
-    	virtual string get_name()const override;
-    	virtual int get_max_hp()const override;
-        virtual int get_price()const override;
+        static Info get_info() ;
 
+        virtual std::string get_name() const override;
         virtual void player_visit(Player &p) override;
         virtual bool zombie_visit(Zombie &z) override;
-        virtual void healed() override;
+        virtual void healed(int i) override;
 
-        void set_atk(int i);
-
+        static void set_atk(int i);
+        static void print_intro();
 
     private:
         static int atk;
-    	static string name;
-    	static int max_hp;
-    	static int price;
+        static Info info;
 };
 
 
 class BombPlant: public Plants{
 
-    BombPlant():cur_hp(max_hp){};
+    BombPlant();
     public:
-        virtual void set_name(string s) override;
-    	virtual void set_max_hp(int i) override;
-        virtual void set_price(int i) override;
+        static void set_info(std::string name,int max_hp,int price);
 
-    	virtual string get_name()const override;
-    	virtual int get_max_hp()const override;
-        virtual int get_price()const override;
+        static Info get_info() ;
 
+        virtual std::string get_name() const override;
         virtual void player_visit(Player &p) override;
         virtual bool zombie_visit(Zombie &z) override;
-        virtual void healed() override;
+        virtual void healed(int i) override;
+        static void print_intro();
 
     private:
-    	static string name;
-    	static int max_hp;
-    	static int price;
-
+        static Info info;
 };
 
 
 class HealPlant: public Plants{
 
-    HealPlant():cur_hp(max_hp){};
+    HealPlant();
     public:
-        virtual void set_name(string s) override;
-    	virtual void set_max_hp(int i) override;
-        virtual void set_price(int i) override;
+        static void set_info(std::string name,int max_hp,int price);
 
-    	virtual string get_name()const override;
-    	virtual int get_max_hp()const override;
-        virtual int get_price()const override;
+        static Info get_info() ;
 
+        virtual std::string get_name() const override;
         virtual void player_visit(Player &p) override;
         virtual bool zombie_visit(Zombie &z) override;
-        virtual void healed() override;
+        virtual void healed(int i) override;
 
-        void set_heal_point(int i);
+        static void set_heal_point(int i);
+        
+        static void print_intro();
 
     private:
         static int heal_point;
-    	static string name;
-    	static int max_hp;
-    	static int price;
+        static Info info;
 };
 
-std::ostream &operator << (std::ostream,const Plants&);
+std::ostream &operator<<(std::ostream os,const CoinPlant &c);
+std::ostream &operator<<(std::ostream os, const Plants &p);
 
 #endif // PLANTS_H
