@@ -1,7 +1,9 @@
+#include <vector>
 #include "plants.h"
 #include "player.h"
 #include "zombie.h"
 //#include "game.h"
+
 
 Game* Plants::g = nullptr;
 int   CoinPlant::each_round_visit=0;
@@ -44,6 +46,7 @@ void CoinPlant::player_visit(Player &p){
     ++cur_visit;
     if(cur_visit==CoinPlant::each_round_visit){
         cur_visit=0;
+        p.earn(CoinPlant::earn_money);
         std::cout<<"You have earned $"<<CoinPlant::earn_money<<"! Now you have $"<<p.money()<<"."<<std::endl;
     }
     else{
@@ -197,7 +200,13 @@ std::string HealPlant::get_name()const{
 //undone(I need to know how to store each plant in the class Game)
 void HealPlant::player_visit(Player &p){
     std::cout<<"All your plants have recovered "<<HealPlant::heal_point<<" HP!"<<std::endl;
-    
+    std::vector<Plants*> plants = g->all_plants();
+    std::vector<Plants*>::iterator it;
+    for (it = plants.begin(); it != plants.end(); ++it) {
+        Plants* plant = *it;  
+        plant->healed(HealPlant::heal_point);
+    }
+
 }
 
 bool HealPlant::zombie_visit(Zombie &z){
@@ -226,11 +235,11 @@ void HealPlant::print_intro(){
             <<" - gives all your plants "<<HealPlant::heal_point<<" HP back."<<std::endl;
 }
 
-std::ostream &operator<<(std::ostream os,const CoinPlant &c){
+std::ostream &operator<<(std::ostream &os,const CoinPlant &c){
     os<<c.get_name()<<" HP: "<<c.cur_hp<<" ("<<CoinPlant::each_round_visit-c.cur_visit<<" more visits)"<<std::endl;
     return os;
 }
-std::ostream &operator<<(std::ostream os, const Plants &p){
+std::ostream &operator<<(std::ostream &os, const Plants &p){
     os<<p.get_name()<<" HP: "<<p.cur_hp<<std::endl;
     return os;
 }

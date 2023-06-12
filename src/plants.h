@@ -27,7 +27,7 @@ class Info{
 
 
 class Plants{
-    friend std::ostream &operator<<(std::ostream os,const Plants &p);
+    friend std::ostream &operator<<(std::ostream &os,const Plants &p);
     public:
 
         static void set_game_ref(Game &game);
@@ -48,7 +48,7 @@ class Plants{
 
 
 class CoinPlant: public Plants{
-    friend std::ostream &operator<<(std::ostream os,const CoinPlant &c);
+    friend std::ostream &operator<<(std::ostream &os,const CoinPlant &c);
     CoinPlant();
     public:
         static void set_info(std::string name,int max_hp,int price);
@@ -137,7 +137,7 @@ class HealPlant: public Plants{
         static Info info;
 };
 
-std::ostream &operator<<(std::ostream os,const CoinPlant &c);
-std::ostream &operator<<(std::ostream os, const Plants &p);
+std::ostream &operator<<(std::ostream &os,const CoinPlant &c);
+std::ostream &operator<<(std::ostream &os, const Plants &p);
 
 #endif // PLANTS_H
