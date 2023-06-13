@@ -28,13 +28,15 @@ class Info{
 
 class Plants{
     friend std::ostream &operator<<(std::ostream &os,const Plants &p);
+
     public:
 
         static void set_game_ref(Game &game);
 
-        virtual std::string get_name() const = 0;
+
+        virtual std::string get_name() const {};
         virtual void player_visit(Player &p){};
-        virtual bool zombie_visit(Zombie &z) = 0;// return true represent this plant dead
+        virtual bool zombie_visit(Zombie &z){};// return true represent this plant dead
         virtual void healed(int i){};
 
         int get_cur_hp()const{return cur_hp;}
@@ -78,6 +80,7 @@ class HornPlant: public Plants{
 
     public:
         HornPlant();
+
         static void set_info(std::string name,int max_hp,int price);
 
         static Info get_info() ;
@@ -100,6 +103,7 @@ class BombPlant: public Plants{
 
     public:
         BombPlant();
+
         static void set_info(std::string name,int max_hp,int price);
 
         static Info get_info() ;
@@ -108,11 +112,10 @@ class BombPlant: public Plants{
         virtual void player_visit(Player &p) override;
         virtual bool zombie_visit(Zombie &z) override;
         virtual void healed(int i) override;
-        static void set_atk(int i);
+
         static void print_intro();
 
     private:
-        static int atk;
         static Info info;
 };
 
@@ -121,6 +124,7 @@ class HealPlant: public Plants{
 
     public:
         HealPlant();
+
         static void set_info(std::string name,int max_hp,int price);
 
         static Info get_info() ;
