@@ -9,6 +9,8 @@ Zombie::Zombie(int hp, int attack, int max_velocity) : hp_(hp), attack_(attack),
     this->dist = std::uniform_int_distribution<int>(1, this->max_velocity_);
 }
 
+Zombie::~Zombie() {}
+
 int Zombie::position() const
 {
     return this->position_;

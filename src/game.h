@@ -9,6 +9,9 @@
 #include "zombie.h"
 #include "player.h"
 
+class Plants;
+class Map;
+
 class Game
 {
 public:
@@ -16,8 +19,8 @@ public:
     constexpr static int max_num_land = 10;
     constexpr static int default_num_zombie = 3;
     constexpr static int default_num_land = 8;
-    
-    std::vector<Plants*> all_plants() const;
+
+    std::vector<Plants *> all_plants() const;
 
     Game(std::string num_land, std::string num_zombie);
     static void print_title();
@@ -32,7 +35,7 @@ public:
 
     int player_Choice();
     void visit_plant(Plants *plant);
-    int zombie_action(std::vector<Zombie*> &all_zombies);
+    int zombie_action(std::vector<Zombie *> &all_zombies);
     void player_move();
     int game_round();
     int win_or_lose() const;
@@ -44,7 +47,6 @@ private:
     constexpr static int zombie_atk = 15;
     constexpr static int default_money = 150;
 
-    
     int num_land_ = 0;
     int num_plant_ = 0;
     int num_bombPlant_ = 0;
@@ -57,8 +59,8 @@ private:
     int cur_zombie_num_ = 0;
     Map *map_ = nullptr;
     Player *player_ = nullptr;
-    std::vector<Plants*>& all_plants_ = *new std::vector<Plants*>;
-    std::vector<Zombie*>& all_zombies_ = *new std::vector<Zombie*>;
+    std::vector<Plants *> &all_plants_ = *new std::vector<Plants *>;
+    std::vector<Zombie *> &all_zombies_ = *new std::vector<Zombie *>;
 };
 
 #endif
