@@ -1,12 +1,47 @@
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <map>
 #include "game.h"
-#include "plants.h"
 using namespace std;
 
-void Game::print_title() const
+enum {CONTINUE, WIN, LOSE, LACKMONEY};
+enum {NOTHING, TOOMANYBOMB};
+
+int parse_input(string &str)
+{
+    int num = 0;
+    try {
+        num = std::stoi(str);
+    } catch (const std::invalid_argument& e) {
+        num = -1;
+    }
+    return num;
+}
+
+Game::Game(string num_land, string num_zombie)
+{
+    num_land_ = parse_input(num_land);
+    num_zombie_ = parse_input(num_zombie);
+    if(num_land_ < 1 || num_land_ > max_num_land)
+    {
+        num_land_ = default_num_land;
+    }
+    if(num_zombie_ < 1 || num_zombie_ > max_num_zombie)
+    {
+        num_zombie_ = default_num_zombie;
+    }
+
+    num_land_ = parse_input(num_land);
+    num_zombie_ = parse_input(num_zombie);
+    cur_zombie_num_ = num_zombie_;
+    map_ = new Map(num_land_);
+    player_ = new Player(default_money, player_v);
+    for (int i = 0; i < num_zombie_; ++i) 
+    {
+        all_zombies_[i] = new Zombie(zombie_hp, zombie_atk, zombie_v);
+    }
+}
+
+void Game::print_title()
 {
     cout << "|----------------|\n"
          << "|\t\tPlants vs Zombies\t\t|\n"
@@ -26,23 +61,25 @@ void Game::print_Rule() const
          << "=============================================================================" << endl;
 }
 
-int Game::init_plants(const std::string fileName)
+int Game::init_plants_setting(const std::string fileName)
 {
     ifstream ifs;
     ifs.open(fileName);
-    if(!ifs.is_open()){
+    if(!ifs.is_open())
+    {
         std::cerr << "Error: cannot open file " << fileName << std::endl;
         return 0;
     }
 
-    while (!ifs.eof()) {
+    while (!ifs.eof()) 
+    {
         string type = 0, name, Sprice;
         int hp = 0;
         ifs >> type >> name >> Sprice >> hp;
         Sprice.erase(0, 1);
         int price = stoi(Sprice);
-
-        ++default_choice_;
+        if(price <= lowest_price_)  lowest_price_ = price;
+        
         if(type == "C"){
             int round = 0, money = 0;
             ifs >> round >> money;
@@ -63,62 +100,83 @@ int Game::init_plants(const std::string fileName)
             ifs >> heal;
             HealPlant::set_info(name, hp, price);
             HealPlant::set_heal_point(heal);
-        } else {
-            cout << "general plants: (class)plants" << endl;
         }
-        plants_.insert({default_choice_, name});
+        ++default_choice_;
+        plants_map_.insert({default_choice_, name});
     }
     choice_ = default_choice_;
     ifs.close();
     return 1;
 }
 
-int random_number(const int x)
+void Game::player_move()
 {
-    int random = rand() % x - x/2;
-    if(random >= 0)  random += 1;
-    return random;
+    int x = ( player_->velocity() + player_->position() ) % num_land_;
+    player_->move_to(x);
+
+// TODO:
+    // map_->update();
 }
 
-void Game::player_move(Player &player)
+int Game::zombie_action(vector<Zombie*> &zombies)
 {
-    constexpr int player_move_range = 6*2;
-    // get random number
-    random_number(player_move_range);
-    // move player
-    int x = 0;
-    // int x = (player.position() + random) % map.size();
-    player.move_to(x);
-}
+    for(int i = 0; i < num_zombie_; ++i)
+    {
+        if(all_zombies_[i] == nullptr){
+            continue;
+        }
+        int x = ( zombies[i]->velocity() + zombies[i]->position() ) % num_land_;
+        zombies[i]->move_to(x);
+        cout << "Zombie [" << i << "] moves to land " << x << "." << endl;
+// TODO
+        // Plants *plant = map_.land[x].plant();
+        if( plant != nullptr )
+        {
+            if(plant->get_name() == BombPlant::get_info().get_name())
+            {
+                if(num_bombPlant_ * 2 > num_zombie_){
+                    cout << "You lose the game since you cannot use that many bomb plants!" << endl;
+                    system("pause");
+                    return TOOMANYBOMB;
+                }
+                --num_bombPlant_;
+            }
+            if(plant->zombie_visit( *zombies[i] ))
+            {
+                delete map_->land[x].plant();
+                map_->land[x].set_plant(nullptr);
+                all_plants_.erase( all_plants_.begin() + x );
+                --num_plant_;
+            }
+            if(zombies[i]->hp() <= 0)
+            {
+                delete zombies[i];
+                zombies[i] = nullptr;
+                --cur_zombie_num_;
+            }
+        }
+    }
 
-void Game::zombie_action(Zombie &zombie)
-{
-    constexpr int zombie_move_range = 3*2;
-    // get random number
-    random_number(zombie_move_range);
-    
-    int x = 0;
-    // int x = (zombie.position() + random) % map.size();
-    
-    zombie.move_to(x);
-    // if( meet_plant )
-    // {
-    //     attack();
-    // }
+    system("pause");
+
+// TODO: 
+    // map_->update();
+
+    return NOTHING;
 }
 
 void Game::print_choice_option() const
 {
-    for(int choice = 0; choice < plants_.size(); ++choice)
+    for(int choice = 0; choice < plants_map_.size(); ++choice)
     {
         cout << "[" << choice << "] " ;
-        if( plants_[choice] == "Mushroom" ){
+        if( plants_map_[choice] == "Mushroom" ) {
             CoinPlant::print_intro();
-        } else if( plants_[choice] == "Hornflower" ){
+        } else if( plants_map_[choice] == "Hornflower" ) {
             HealPlant::print_intro();
-        } else if( plants_[choice] == "Bombflower" ){
+        } else if( plants_map_[choice] == "Bombflower" ) {
             BombPlant::print_intro();
-        } else if( plants_[choice] == "Healflower" ){
+        } else if( plants_map_[choice] == "Healflower" ) {
             HealPlant::print_intro();
         } else {
             cout << "general plants: (class)plants" << endl;
@@ -126,75 +184,211 @@ void Game::print_choice_option() const
     }
 }
 
-void Game::print_player_money(const Player &player) const
+void Game::print_player_money() const
 {
-    cout << "Player $" << player.money() << ": " ;
-    cout << "Enter your choice (" << plants_.size() << "to  give up, default: " << choice_ << ")...> ";
+    cout << "Player $" << player_->money() << ": \t"
+         << "Enter your choice (" << plants_map_.size() 
+         << "to  give up, default: " << choice_ << ")...> ";
 }
 
+// TODO: init rules?
 void Game::init_all_location(){
-    // init zombie location
-    // init player location
+    for (int i = 0; i < num_zombie_; ++i) 
+    {
+        int x = rand() % num_land_;
+        all_zombies_[i]->move_to(x);
+    }
+
+    int x = rand() % num_land_;
+    player_->move_to(x);
 }
 
-void Game::player_Choice()
+int Game::player_Choice()
 {
-    cin >> choice_;
-    if(choice_ < 0 || choice_ > plants_.size()){
+    string input = "";
+    cin >> input;
+    choice_ = parse_input(input);
+    if(choice_ < 0 || choice_ > plants_map_.size())
+    {
         choice_ = default_choice_;
     }
     default_choice_ = choice_;
 
-    for(int choice = 0; choice < plants_.size(); ++choice)
+    if (choice_ == plants_map_.size()) 
     {
-        cout << "[" << choice << "] " ;
-        if( plants_[choice] == "Mushroom" ){
+        cout << "You give up!" << endl;
+        return CONTINUE;
+    }
 
-        } else if( plants_[choice] == "Hornflower" ){
+    for(int choice = 0; choice < plants_map_.size(); ++choice)
+    {
+        if( plants_map_[choice] == CoinPlant::get_info().get_name() )
+        {
+            if( player_->money() < CoinPlant::get_info().get_price()){
+                cout << "Not enough money! Please input again!" << endl;
+                return LACKMONEY;
+            }
+            player_->spend( CoinPlant::get_info().get_price() );
+            CoinPlant *coin_plant = new CoinPlant();
+            all_plants_.push_back(coin_plant);
+// TODO: add plant on land
+            // map_->add_plant(coin_plant);
+            cout << "You have planted " << CoinPlant::get_info().get_name()
+                 << " at land " << player_->position() << " !" << endl;
+        } 
+        else if( plants_map_[choice] == HornPlant::get_info().get_name() )
+        {
+            if( player_->money() < HornPlant::get_info().get_price()){
+                cout << "Not enough money! Please input again!" << endl;
+                return LACKMONEY;
+            }
 
-        } else if( plants_[choice] == "Bombflower" ){
+            player_->spend( HornPlant::get_info().get_price() );
+            HornPlant *horn_plant = new HornPlant();
+            all_plants_.push_back(horn_plant);
+// TODO: add plant on land
+            // map_->add_plant(horn_plant);
+            cout << "You have planted " << HornPlant::get_info().get_name() 
+                 << " at land " << player_->position() << " !" << endl;
+        } 
+        else if( plants_map_[choice] == BombPlant::get_info().get_name() )
+        {
+            if( player_->money() < BombPlant::get_info().get_price()){
+                cout << "Not enough money! Please input again!" << endl;
+                return LACKMONEY;
+            }
 
-        } else if( plants_[choice] == "Healflower" ){
+            player_->spend(BombPlant::get_info().get_price() );
+            BombPlant *bomb_plant = new BombPlant();
+// TODO: add plant on land
+            // map_->add_plant(bomb_plant);
+            all_plants_.push_back(bomb_plant);
+            ++num_bombPlant_;
+            cout << "You have planted " << BombPlant::get_info().get_name()
+                 << " at land " << player_->position() << " !" << endl;
+        } 
+        else if( plants_map_[choice] == HealPlant::get_info().get_name() )
+        {
+            if( player_->money() < HealPlant::get_info().get_price()){
+                cout << "Not enough money! Please input again!" << endl;
+                return LACKMONEY;
+            }
+    
+            player_->spend( HealPlant::get_info().get_price() );
+            HealPlant *heal_plant = new HealPlant();
+// TODO: add plant on land
+            // map_->add_plant(heal_plant);
+            all_plants_.push_back(heal_plant);
+            cout << "You have planted " << HealPlant::get_info().get_name() 
+                 << " at land " << player_->position() << " !" << endl;
+        }
+    }
+    ++num_plant_;
+    return CONTINUE;
+}
+// TODO
+void Game::print_map() const
+{
+    for(int i = 0; map_->size(); i++)
+    {
+        cout << "[" << i << "]{ ";
+        if(player_->position() == i)    cout << "*";
+        else                            cout << " ";
+        
+        for(int j = 0; j < num_zombie_; ++j)
+        {
+            if(all_zombies_[j] == nullptr)  cout << " ";
+            if(all_zombies_[j]->position() == i) cout << j;
+            else                                 cout << " ";
+        }
 
+        cout << "}";
+
+        if(map.land[i].plants() == nullptr)     cout << "Empty" << endl;
+        else {
+            cout << map.land[i].plants();
         }
     }
 }
 
-void Game::print_map(const Map &map) const
+void Game::print_zombieInfo() const
 {
-
+    cout << "Zombie information:" << endl;
+    for(int i = 0; i < num_zombie_; ++i)
+    {
+        if(all_zombies_[i] == nullptr){
+            continue;
+        }
+        cout << "[" << i << "] Damage: " << all_zombies_[i]->attack() << "HP:";
+        for(int j = 0; j < all_zombies_[i]->hp(); ++j)
+        {
+            cout << "*";
+        }
+        cout << endl;
+    }
 }
 
-void Game::print_zombieInfo(const Zobmie &zombie) const
+void Game::visit_plant(Plants *plant)
 {
-
+    string name = plant->get_name();
+    plant->player_visit(*player_);
 }
 
 int Game::game_round()
 {
-    // Print_map();
-    // Print_zombieInfo();
-    // Print_player_money();
-    // Print_choice_option();
-    // if(play.money() >= 50){
-        // Player_Choice();
-    // } else {
-        // cout << "You do not have enough money to plant anything!" << endl;
-    // }
-    // if(win_or_lose()){
-    //     return 1;
-    // }
-    // for(){
-        // Zombie_action();
-        // if(win_or_lose()){
-        //     return 1;
-        // }
-    // }
+    system("cls");
+
+    print_map();
+    cout << "------------------------------------------------" << endl;
+    print_zombieInfo();
+    cout << "================================================" << endl;
+
+// TODO: plant in land
+    // Plants *plant_in_land = map_->land[player_->position()].plants();
+    if(player_->money() >= lowest_price_ && plant_in_land == nullptr ){
+        print_choice_option();
+        cout << endl;
+        print_player_money();    
+        if(LACKMONEY == player_Choice()){
+            return CONTINUE;
+        }
+    } else if( plant_in_land != nullptr ){
+        // visit_plant(map_->land[player_->position()].plants());
+    } else {
+        cout << "You do not have enough money to plant anything!" << endl;
+    }
+    system("pause");
+    if(win_or_lose()){
+        return !CONTINUE;
+    }
+    if(zombie_action(all_zombies_) == TOOMANYBOMB){
+        return LOSE;
+    }
+
+    player_move();
     return win_or_lose();
 }
 
 int Game::win_or_lose() const
 {
+    if(cur_zombie_num_ == 0 && num_plant_ > 0)
+    {
+        cout << "Congratulation! You have killed all zombies!" << endl;
+        system("pause");
+        return WIN;
+    }
 
-    return 1;
+    if(num_plant_ == 0)
+    {
+        cout << "Oh no... You have no plant on the map ...." << endl;
+        system("pause");
+        return LOSE;
+    }
+    
+    return CONTINUE;
+}
+
+vector<Plants*> Game::all_plants() const
+{
+    return all_plants_;
 }
