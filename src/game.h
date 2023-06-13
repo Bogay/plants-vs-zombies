@@ -59,8 +59,8 @@ private:
     int cur_zombie_num_ = 0;
     Map *map_ = nullptr;
     Player *player_ = nullptr;
-    std::vector<Plants *> &all_plants_ = *new std::vector<Plants *>;
-    std::vector<Zombie *> &all_zombies_ = *new std::vector<Zombie *>;
+    std::vector<Plants *> all_plants_;
+    std::vector<Zombie *> all_zombies_;
 };
 
 #endif
