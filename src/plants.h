@@ -27,10 +27,12 @@ class Info{
 
 
 class Plants{
-    friend std::ostream &operator<<(std::ostream os,const Plants &p);
+    friend std::ostream &operator<<(std::ostream &os,const Plants &p);
+
     public:
 
         static void set_game_ref(Game &game);
+
 
         virtual std::string get_name() const {};
         virtual void player_visit(Player &p){};
@@ -48,9 +50,9 @@ class Plants{
 
 
 class CoinPlant: public Plants{
-    friend std::ostream &operator<<(std::ostream os,const CoinPlant &c);
-    CoinPlant();
+    friend std::ostream &operator<<(std::ostream &os,const CoinPlant &c);
     public:
+        CoinPlant();
         static void set_info(std::string name,int max_hp,int price);
 
         static Info get_info() ;
@@ -76,8 +78,9 @@ class CoinPlant: public Plants{
 
 class HornPlant: public Plants{
 
-    HornPlant();
     public:
+        HornPlant();
+
         static void set_info(std::string name,int max_hp,int price);
 
         static Info get_info() ;
@@ -98,8 +101,9 @@ class HornPlant: public Plants{
 
 class BombPlant: public Plants{
 
-    BombPlant();
     public:
+        BombPlant();
+
         static void set_info(std::string name,int max_hp,int price);
 
         static Info get_info() ;
@@ -108,6 +112,7 @@ class BombPlant: public Plants{
         virtual void player_visit(Player &p) override;
         virtual bool zombie_visit(Zombie &z) override;
         virtual void healed(int i) override;
+
         static void print_intro();
 
     private:
@@ -117,8 +122,9 @@ class BombPlant: public Plants{
 
 class HealPlant: public Plants{
 
-    HealPlant();
     public:
+        HealPlant();
+
         static void set_info(std::string name,int max_hp,int price);
 
         static Info get_info() ;
@@ -137,7 +143,7 @@ class HealPlant: public Plants{
         static Info info;
 };
 
-std::ostream &operator<<(std::ostream os,const CoinPlant &c);
-std::ostream &operator<<(std::ostream os, const Plants &p);
+std::ostream &operator<<(std::ostream &os,const CoinPlant &c);
+std::ostream &operator<<(std::ostream &os, const Plants &p);
 
 #endif // PLANTS_H

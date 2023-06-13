@@ -226,11 +226,12 @@ void HealPlant::print_intro(){
             <<" - gives all your plants "<<HealPlant::heal_point<<" HP back."<<std::endl;
 }
 
-std::ostream &operator<<(std::ostream os,const CoinPlant &c){
+
+std::ostream &operator<<(std::ostream &os,const CoinPlant &c){
     os<<c.get_name()<<" HP: "<<c.cur_hp<<" ("<<CoinPlant::each_round_visit-c.cur_visit<<" more visits)"<<std::endl;
     return os;
 }
-std::ostream &operator<<(std::ostream os, const Plants &p){
+std::ostream &operator<<(std::ostream &os, const Plants &p){
     os<<p.get_name()<<" HP: "<<p.cur_hp<<std::endl;
     return os;
 }
