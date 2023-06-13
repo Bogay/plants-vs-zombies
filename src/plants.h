@@ -51,6 +51,7 @@ class Plants{
 
 class CoinPlant: public Plants{
     friend std::ostream &operator<<(std::ostream &os,const CoinPlant &c);
+    CoinPlant();
     public:
         CoinPlant();
         static void set_info(std::string name,int max_hp,int price);
